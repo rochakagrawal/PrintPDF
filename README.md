@@ -21,7 +21,7 @@ change information.
 
 PrintPDF 1.0 is currently distributed as an unsigned open-source package.
 Download the package, matching source archive, and checksum only from the
-[official GitHub release](https://github.com/rochakagrawal/PrintPDF/releases/tag/v1.0).
+[official downloads below](#downloads).
 
 1. Verify the package against the published SHA-256 checksum.
 2. Double-click `PrintPDF.pkg`.
@@ -32,6 +32,14 @@ Download the package, matching source archive, and checksum only from the
 4. Complete the installer.
 5. PrintPDF Utility opens automatically. Choose where PDFs should be saved.
 6. Print from any application and select **PrintPDF** as the printer.
+
+## Downloads
+
+- [PrintPDF 1.0 unsigned installer](https://github.com/rochakagrawal/PrintPDF/raw/v1.0/dist/PrintPDF-1.0-unsigned.pkg)
+- [PrintPDF 1.0 corresponding source](https://github.com/rochakagrawal/PrintPDF/raw/v1.0/dist/PrintPDF-1.0-source.zip)
+- [SHA-256 checksums](https://github.com/rochakagrawal/PrintPDF/raw/v1.0/dist/PrintPDF-1.0-SHA256.txt)
+
+The `v1.0` branch preserves the exact source and downloads for this version.
 
 Apple documents this per-package exception here:
 [Open an app by overriding security settings](https://support.apple.com/en-asia/guide/mac-help/mh40617/mac).

@@ -12,7 +12,7 @@ per-user folder chooser, background file mover, updated naming, and current
 macOS build fixes. Full source, licence, attribution, installer, and checksum are
 available here:
 
-[Download PrintPDF 1.0 from GitHub](https://github.com/rochakagrawal/PrintPDF/releases/tag/v1.0)
+[Download PrintPDF 1.0 from GitHub](https://github.com/rochakagrawal/PrintPDF#downloads)
 
 Requirements: macOS 12 or newer, Intel or Apple Silicon.
 
