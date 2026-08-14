@@ -5,10 +5,10 @@ setup, each user chooses their own destination folder. The destination can be a
 local folder, an iCloud Drive folder, or a folder managed by a sync provider
 such as Google Drive or Dropbox.
 
-Its main advantage over RWTS PDFwriter is that each completed PDF is moved as
+**Its main advantage over RWTS PDFwriter is that each completed PDF is moved as
 a real file directly into the folder selected by the user. RWTS PDFwriter's
 utility instead creates a symbolic link from the chosen location to its spool
-folder. PrintPDF does not use a symbolic link for the destination.
+folder. PrintPDF does not use a symbolic link for the destination.**
 
 PrintPDF is a modified fork of
 [RWTS PDFwriter](https://github.com/rodyager/RWTS-PDFwriter) by Rodney I.
