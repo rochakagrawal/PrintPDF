@@ -5,13 +5,18 @@ setup, each user chooses their own destination folder. The destination can be a
 local folder, an iCloud Drive folder, or a folder managed by a sync provider
 such as Google Drive or Dropbox.
 
+Its main advantage over RWTS PDFwriter is that each completed PDF is moved as
+a real file directly into the folder selected by the user. RWTS PDFwriter's
+utility instead creates a symbolic link from the chosen location to its spool
+folder. PrintPDF does not use a symbolic link for the destination.
+
 PrintPDF is a modified fork of
 [RWTS PDFwriter](https://github.com/rodyager/RWTS-PDFwriter) by Rodney I.
 Yager. RWTS PDFwriter was based on Lisanet PDFWriter by Simone Karin Lehmann,
 which was based on CUPS-PDF. See [NOTICE.md](NOTICE.md) for attribution and
 change information.
 
-<img width="1810" height="894" alt="image" src="https://github.com/user-attachments/assets/247ceee2-7479-46b1-aa95-ae3e832bce05" />
+<img width="1810" height="894" alt="PrintPDF Utility working" src="https://github.com/user-attachments/assets/247ceee2-7479-46b1-aa95-ae3e832bce05" />
 
 ## Requirements
 

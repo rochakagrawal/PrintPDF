@@ -7,6 +7,10 @@ directly into a PDF file. On first launch it asks where you want PDFs saved, and
 you can change that destination later. Local folders and cloud-synced folders
 such as iCloud Drive, Google Drive, and Dropbox can be selected.
 
+The key difference from RWTS PDFwriter is that PrintPDF moves each finished PDF
+as a real file directly into your selected folder. It does not create a
+destination-folder symbolic link to the printer's spool directory.
+
 PrintPDF is a GPLv2 fork of Rodney I. Yager's RWTS PDFwriter, with a portable
 per-user folder chooser, background file mover, updated naming, and current
 macOS build fixes. Full source, licence, attribution, installer, and checksum are

@@ -7,6 +7,8 @@ Initial PrintPDF release, based on RWTS PDFwriter 3.1d.
 - Appears as a normal macOS printer named PrintPDF.
 - Saves PDFs to a folder chosen by each user.
 - Supports local and cloud-synced destination folders.
+- Moves completed PDFs into the selected folder as real files instead of using
+  RWTS PDFwriter's destination-folder symbolic link.
 - Lets users change the destination later through PrintPDF Utility.
 - Preserves existing files by adding numeric filename suffixes.
 - Contains universal Intel and Apple Silicon binaries.
