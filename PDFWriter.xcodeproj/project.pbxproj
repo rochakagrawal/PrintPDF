@@ -44,7 +44,7 @@
 		5557B9222978AD6F00199134 /* PDFwriter.iconset */ = {isa = PBXFileReference; lastKnownFileType = folder.iconset; path = PDFwriter.iconset; sourceTree = "<group>"; };
 		5557B9232978AD6F00199134 /* PDFfolder.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = PDFfolder.png; sourceTree = "<group>"; };
 		5557B9242978CBD400199134 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
-		5557B9252978CBE100199134 /* License */ = {isa = PBXFileReference; lastKnownFileType = text; path = License; sourceTree = "<group>"; };
+		5557B9252978CBE100199134 /* LICENSE */ = {isa = PBXFileReference; lastKnownFileType = text; path = LICENSE; sourceTree = "<group>"; };
 		55B96A5B2E6511170028505E /* PDFWriter-Utility-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "PDFWriter-Utility-Info.plist"; sourceTree = SOURCE_ROOT; };
 		55BA6F6F297812A30090F158 /* pdfwriter */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = pdfwriter; sourceTree = BUILT_PRODUCTS_DIR; };
 		55BA6F71297812A40090F158 /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
@@ -71,7 +71,7 @@
 		5506A7A0285F18BF00C5BDF5 = {
 			isa = PBXGroup;
 			children = (
-				5557B9252978CBE100199134 /* License */,
+				5557B9252978CBE100199134 /* LICENSE */,
 				5557B9242978CBD400199134 /* README.md */,
 				55BA6F70297812A40090F158 /* pdfwriter */,
 				5506A7AB285F18BF00C5BDF5 /* PDFWriter Utility */,

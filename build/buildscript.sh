@@ -50,7 +50,7 @@ chmod 755 "$PDFWRITERDIR/uninstall" "$PDFWRITERDIR/pdfwriter-mover.sh" \
     "$SCRIPT_DIR/postinstall" "$SCRIPT_DIR/preinstall"
 
 cp "$SCRIPT_DIR/PDFWriter.iconset/icon_256x256.png" "$PACKAGE_TEMP/resources/background.png"
-cp "$PROJECT_DIR/License" "$PACKAGE_TEMP/resources/"
+cp "$PROJECT_DIR/LICENSE" "$PACKAGE_TEMP/resources/"
 cp "$SCRIPT_DIR/postinstall" "$SCRIPT_DIR/preinstall" "$PACKAGE_TEMP/scripts/"
 
 # Prevent Finder metadata and provenance attributes from becoming AppleDouble
@@ -74,7 +74,7 @@ productbuild --synthesize \
 sed -i '' '3 a\
 \    <title>PrintPDF</title>\
 \    <background file="background.png" alignment="bottomleft" scaling="none"/>\
-\    <license file="License"/>\
+\    <license file="LICENSE"/>\
 \    <readme file="README.rtfd"  />
 ' "$PACKAGE_TEMP/distribution.dist"
 

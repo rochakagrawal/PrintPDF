@@ -6,7 +6,7 @@ public release.
 ## Required
 
 - Publish the complete source for the exact released package.
-- Include the unmodified `License` file.
+- Include the unmodified `LICENSE` file.
 - Keep `NOTICE.md` and upstream copyright notices.
 - Describe PrintPDF as a modified fork of RWTS PDFwriter.
 - Apply GNU GPL version 2 to the modified source.

@@ -87,6 +87,6 @@ script. Uninstallation does not delete PDFs already saved in the destination.
 ## Licence
 
 PrintPDF is free software distributed under the GNU General Public License,
-version 2. The complete licence is in [License](License). Anyone distributing a
+version 2. The complete licence is in [LICENSE](LICENSE). Anyone distributing a
 compiled package must also make the complete corresponding source available
 under the same licence.
