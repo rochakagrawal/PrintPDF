@@ -1,0 +1,36 @@
+#!/bin/sh
+
+# PrintPDF uninstaller
+# Based on RWTS PDFwriter 3.1 by Rodney I. Yager.
+
+echo "
+
+    ************************
+    * PrintPDF Uninstaller *
+    ************************
+
+    Your admin password is required to complete the removal.
+    Your saved PDF files will not be removed.
+
+    Quit Terminal now if you do not want to proceed.
+
+"
+
+uid=$(id -u)
+agent="$HOME/Library/LaunchAgents/com.printpdf.mover.plist"
+launchctl bootout "gui/$uid" "$agent" >/dev/null 2>&1 || true
+rm -f "$agent"
+rm -rf "$HOME/Library/Application Support/PrintPDF"
+
+sudo rm -rf /Library/Printers/PrintPDF
+sudo rm -f /usr/libexec/cups/backend/printpdf
+sudo rm -f /Library/Printers/PPDs/Contents/Resources/PrintPDF.gz
+lpadmin -x PrintPDF >/dev/null 2>&1 || true
+
+sudo pkgutil --forget com.printpdf.pkg >/dev/null 2>&1 || true
+
+echo "
+
+    Removal completed
+
+"

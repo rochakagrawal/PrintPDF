@@ -1,0 +1,6 @@
+.DS_Store
+DeveloperID
+*.pkg
+*.xcuserdatad
+/~/tmp/
+build/build.log

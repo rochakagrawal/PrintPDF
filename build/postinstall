@@ -1,0 +1,28 @@
+#!/bin/bash
+
+# PrintPDF postinstall
+# Based on RWTS PDFwriter 3.1 by Rodney I. Yager.
+
+set -e
+
+ln -sf /Library/Printers/PrintPDF/pdfwriter /usr/libexec/cups/backend/printpdf
+
+chgrp admin /Library/Printers/PrintPDF/uninstall
+chmod 750 /Library/Printers/PrintPDF/uninstall
+
+launchctl unload /System/Library/LaunchDaemons/org.cups.cupsd.plist >/dev/null 2>&1 || true
+launchctl load /System/Library/LaunchDaemons/org.cups.cupsd.plist >/dev/null 2>&1 || true
+
+lpadmin -x PrintPDF >/dev/null 2>&1 || true
+lpadmin -p PrintPDF -E -v printpdf:/ \
+    -P /Library/Printers/PPDs/Contents/Resources/PrintPDF.gz \
+    -o printer-is-shared=false
+
+[ "$COMMAND_LINE_INSTALL" == "1" ] && exit 0
+
+CONSOLE_USER="$(stat -f '%Su' /dev/console)"
+if [ -n "$CONSOLE_USER" ] && [ "$CONSOLE_USER" != "root" ] && [ "$CONSOLE_USER" != "loginwindow" ]; then
+    CONSOLE_UID="$(id -u "$CONSOLE_USER")"
+    launchctl asuser "$CONSOLE_UID" sudo -u "$CONSOLE_USER" \
+        open "/Library/Printers/PrintPDF/Utilities/PrintPDF Utility.app" || true
+fi

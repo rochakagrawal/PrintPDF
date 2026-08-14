@@ -1,0 +1,6 @@
+#!/bin/bash
+
+# PrintPDF preinstall
+# Previous PrintPDF versions are upgraded in place by pkgbuild.
+
+exit 0
