@@ -11,6 +11,8 @@ Yager. RWTS PDFwriter was based on Lisanet PDFWriter by Simone Karin Lehmann,
 which was based on CUPS-PDF. See [NOTICE.md](NOTICE.md) for attribution and
 change information.
 
+<img width="1810" height="894" alt="image" src="https://github.com/user-attachments/assets/247ceee2-7479-46b1-aa95-ae3e832bce05" />
+
 ## Requirements
 
 - macOS 12 or newer
