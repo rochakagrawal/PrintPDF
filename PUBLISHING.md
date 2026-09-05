@@ -16,16 +16,98 @@ Do not publish only the compiled package. A GitHub repository plus a GitHub
 Release containing both `PrintPDF.pkg` and the matching source archive is the
 simplest distribution arrangement.
 
-## Recommended before sharing widely
+## Developer ID signing and notarization
 
-- Join the Apple Developer Program.
-- Sign the utility and printer backend with your Developer ID Application
-  identity.
-- Sign the installer with your Developer ID Installer identity.
-- Submit the installer to Apple's notarization service and staple the result.
+For public binary releases, use Apple's Developer ID and notarization service.
+The repository supports both an unsigned development build and a signed,
+notarized release build.
+
+### One-time Apple setup
+
+1. In Apple Developer Certificates, Identifiers & Profiles, create both:
+   - `Developer ID Application`
+   - `Developer ID Installer`
+2. Install both certificates and their private keys in Keychain Access.
+3. Confirm the exact identities with:
+
+   ```bash
+   security find-identity -v -p codesigning
+   ```
+
+4. Create an app-specific password for the Apple Account used with the
+   notarization service, or store notarization credentials in a local
+   `notarytool` keychain profile.
+
+### Local notarized release
+
+Set the exact certificate identities shown by Keychain Access:
+
+```bash
+export DEVELOPER_ID_APPLICATION="Developer ID Application: Your Name (TEAMID)"
+export DEVELOPER_ID_INSTALLER="Developer ID Installer: Your Name (TEAMID)"
+```
+
+For notarization, either create a keychain profile once:
+
+```bash
+xcrun notarytool store-credentials "PrintPDF-notary" \
+  --apple-id "YOUR_APPLE_ID" \
+  --team-id "YOUR_TEAM_ID" \
+  --password "YOUR_APP_SPECIFIC_PASSWORD"
+export NOTARY_KEYCHAIN_PROFILE="PrintPDF-notary"
+```
+
+or set `APPLE_ID`, `APPLE_TEAM_ID`, and `APPLE_APP_SPECIFIC_PASSWORD` as
+environment variables.
+
+Then run:
+
+```bash
+bash build/notarize-release.sh
+```
+
+The script builds PrintPDF, signs the utility and CUPS backend with the
+Developer ID Application identity, signs `PrintPDF.pkg` with the Developer ID
+Installer identity, submits it using `notarytool`, waits for Apple's result,
+staples the ticket, validates it, and writes `PrintPDF-SHA256.txt`.
+
+### Manual GitHub Actions release
+
+`.github/workflows/notarized-release.yml` is intentionally manual only. It has
+no push, pull request, tag, or scheduled trigger. Starting it requires opening
+GitHub Actions, selecting **Build signed and notarized PrintPDF**, choosing
+**Run workflow**, and typing `NOTARIZE`.
+
+Before using it, configure these GitHub Actions repository secrets:
+
+- `BUILD_CERTIFICATE_BASE64`: a base64-encoded PKCS#12 (`.p12`) export containing
+  the Developer ID Application and Developer ID Installer certificates and
+  their private keys.
+- `P12_PASSWORD`: password used when exporting that `.p12`.
+- `KEYCHAIN_PASSWORD`: a random password used only for the temporary CI
+  keychain.
+- `DEVELOPER_ID_APPLICATION`: exact Developer ID Application identity name.
+- `DEVELOPER_ID_INSTALLER`: exact Developer ID Installer identity name.
+- `APPLE_ID`: Apple Account used for notarization.
+- `APPLE_TEAM_ID`: Apple Developer Team ID.
+- `APPLE_APP_SPECIFIC_PASSWORD`: app-specific password for notarization.
+
+The workflow creates a temporary keychain on the GitHub macOS runner, imports
+the certificates, runs the signed/notarized release script, and uploads the
+stapled installer plus SHA-256 file as a workflow artifact. It does not publish
+a GitHub Release automatically.
+
+## Release checklist
+
+- Sign the utility and printer backend with Developer ID Application.
+- Sign the installer with Developer ID Installer.
+- Submit the installer to Apple's notarization service and require an Accepted
+  result.
+- Staple and validate the notarization ticket.
 - Test the final stapled installer on a clean Intel Mac and a clean Apple
   Silicon Mac supported by the release.
-- Publish the SHA-256 checksum from the release build.
+- Publish the SHA-256 checksum.
+- Publish the exact corresponding GPLv2 source alongside the installer.
 
 Never instruct users to disable macOS security protections. Until signing and
 notarization are complete, label the package clearly as an unsigned development
