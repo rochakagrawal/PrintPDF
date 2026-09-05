@@ -23,21 +23,33 @@ jobs:
 
       - name: Create temporary signing keychain
         env:
-          BUILD_CERTIFICATE_BASE64: ${{ secrets.BUILD_CERTIFICATE_BASE64 }}
-          P12_PASSWORD: ${{ secrets.P12_PASSWORD }}
+          APPLICATION_CERTIFICATE_BASE64: ${{ secrets.APPLICATION_CERTIFICATE_BASE64 }}
+          APPLICATION_P12_PASSWORD: ${{ secrets.APPLICATION_P12_PASSWORD }}
+          INSTALLER_CERTIFICATE_BASE64: ${{ secrets.INSTALLER_CERTIFICATE_BASE64 }}
+          INSTALLER_P12_PASSWORD: ${{ secrets.INSTALLER_P12_PASSWORD }}
           KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
         run: |
-          CERTIFICATE_PATH="$RUNNER_TEMP/printpdf-signing.p12"
+          APPLICATION_CERTIFICATE_PATH="$RUNNER_TEMP/printpdf-application.p12"
+          INSTALLER_CERTIFICATE_PATH="$RUNNER_TEMP/printpdf-installer.p12"
           KEYCHAIN_PATH="$RUNNER_TEMP/printpdf-signing.keychain-db"
 
-          echo -n "$BUILD_CERTIFICATE_BASE64" | base64 --decode -o "$CERTIFICATE_PATH"
+          echo -n "$APPLICATION_CERTIFICATE_BASE64" | base64 --decode -o "$APPLICATION_CERTIFICATE_PATH"
+          echo -n "$INSTALLER_CERTIFICATE_BASE64" | base64 --decode -o "$INSTALLER_CERTIFICATE_PATH"
+
           security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
           security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
           security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
-          security import "$CERTIFICATE_PATH" -P "$P12_PASSWORD" -A -t cert -f pkcs12 -k "$KEYCHAIN_PATH"
+
+          security import "$APPLICATION_CERTIFICATE_PATH" -P "$APPLICATION_P12_PASSWORD" -A -t cert -f pkcs12 -k "$KEYCHAIN_PATH"
+          security import "$INSTALLER_CERTIFICATE_PATH" -P "$INSTALLER_P12_PASSWORD" -A -t cert -f pkcs12 -k "$KEYCHAIN_PATH"
+
           security list-keychain -d user -s "$KEYCHAIN_PATH"
           security set-key-partition-list -S apple-tool:,apple: -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+
+          echo "#### available code signing identities"
           security find-identity -v -p codesigning "$KEYCHAIN_PATH"
+          echo "#### available installer certificates"
+          security find-certificate -a -c "Developer ID Installer" "$KEYCHAIN_PATH"
 
       - name: Build, sign, notarize and staple
         env:
