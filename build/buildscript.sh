@@ -89,7 +89,7 @@ pkgbuild --root "$PACKAGE_TEMP/pkgroot" \
     --identifier com.printpdf.pkg \
     --ownership recommended \
     --scripts "$PACKAGE_TEMP/scripts" \
-    --version 1.0 \
+    --version 1.1 \
     "$PACKAGE_TEMP/printpdf-component.pkg" >/dev/null
 
 productbuild --synthesize \
