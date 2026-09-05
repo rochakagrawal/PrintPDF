@@ -1,6 +1,8 @@
 #!/bin/bash
 
-# Builds the unsigned PrintPDF installer package.
+# Builds PrintPDF. By default this creates an unsigned installer package.
+# Set PRINTPDF_SIGN_RELEASE=1 plus Developer ID identities to produce a
+# Developer ID signed package suitable for Apple notarization.
 # Based on RWTS PDFwriter's build script by Rodney I. Yager.
 
 set -euo pipefail
@@ -22,6 +24,16 @@ PPDDIR="$PACKAGE_TEMP/pkgroot/Library/Printers/PPDs/Contents/Resources"
 UTILITYAPP="PrintPDF Utility.app"
 PDFWRITER="pdfwriter"
 BUILDTEMP="$BUILD_TEMP/Install"
+SIGN_RELEASE="${PRINTPDF_SIGN_RELEASE:-0}"
+APP_IDENTITY="${DEVELOPER_ID_APPLICATION:-}"
+INSTALLER_IDENTITY="${DEVELOPER_ID_INSTALLER:-}"
+
+if [ "$SIGN_RELEASE" = "1" ]; then
+    if [ -z "$APP_IDENTITY" ] || [ -z "$INSTALLER_IDENTITY" ]; then
+        echo "ERROR: Signed release requires DEVELOPER_ID_APPLICATION and DEVELOPER_ID_INSTALLER." >&2
+        exit 1
+    fi
+fi
 
 echo "#### building PrintPDF (this may take some time)"
 xcodebuild -project "$PROJECT_DIR/PDFWriter.xcodeproj" \
@@ -48,6 +60,20 @@ ppdc -d "$PPDDIR" -z "$SCRIPT_DIR/PDFWriter.drv"
 chmod 700 "$PDFWRITERDIR/$PDFWRITER"
 chmod 755 "$PDFWRITERDIR/uninstall" "$PDFWRITERDIR/pdfwriter-mover.sh" \
     "$SCRIPT_DIR/postinstall" "$SCRIPT_DIR/preinstall"
+
+if [ "$SIGN_RELEASE" = "1" ]; then
+    echo "#### signing executable components"
+    codesign --force --timestamp --options runtime \
+        --sign "$APP_IDENTITY" \
+        "$PDFWRITERDIR/$PDFWRITER"
+
+    codesign --force --timestamp --options runtime \
+        --sign "$APP_IDENTITY" \
+        "$UTILITIESDIR/$UTILITYAPP"
+
+    codesign --verify --strict --verbose=2 "$PDFWRITERDIR/$PDFWRITER"
+    codesign --verify --deep --strict --verbose=2 "$UTILITIESDIR/$UTILITYAPP"
+fi
 
 cp "$SCRIPT_DIR/PDFWriter.iconset/icon_256x256.png" "$PACKAGE_TEMP/resources/background.png"
 cp "$PROJECT_DIR/LICENSE" "$PACKAGE_TEMP/resources/"
@@ -85,7 +111,17 @@ productbuild --distribution "$PACKAGE_TEMP/distribution.dist" \
 
 pkgutil --expand "$PACKAGE_TEMP/product.pkg" "$PACKAGE_TEMP/expanded"
 cp -R "$SCRIPT_DIR/README.rtfd" "$PACKAGE_TEMP/expanded/Resources/"
-pkgutil --flatten "$PACKAGE_TEMP/expanded" "$PROJECT_DIR/PrintPDF.pkg"
+pkgutil --flatten "$PACKAGE_TEMP/expanded" "$PACKAGE_TEMP/PrintPDF-unsigned.pkg"
+
+if [ "$SIGN_RELEASE" = "1" ]; then
+    echo "#### signing installer package"
+    productsign --sign "$INSTALLER_IDENTITY" \
+        "$PACKAGE_TEMP/PrintPDF-unsigned.pkg" \
+        "$PROJECT_DIR/PrintPDF.pkg"
+    pkgutil --check-signature "$PROJECT_DIR/PrintPDF.pkg"
+else
+    mv "$PACKAGE_TEMP/PrintPDF-unsigned.pkg" "$PROJECT_DIR/PrintPDF.pkg"
+fi
 
 echo "#### Installer package is located at"
 echo "    $PROJECT_DIR/PrintPDF.pkg"
