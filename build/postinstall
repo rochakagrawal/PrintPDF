@@ -18,11 +18,52 @@ lpadmin -p PrintPDF -E -v printpdf:/ \
     -P /Library/Printers/PPDs/Contents/Resources/PrintPDF.gz \
     -o printer-is-shared=false
 
-[ "$COMMAND_LINE_INSTALL" == "1" ] && exit 0
-
 CONSOLE_USER="$(stat -f '%Su' /dev/console)"
 if [ -n "$CONSOLE_USER" ] && [ "$CONSOLE_USER" != "root" ] && [ "$CONSOLE_USER" != "loginwindow" ]; then
     CONSOLE_UID="$(id -u "$CONSOLE_USER")"
-    launchctl asuser "$CONSOLE_UID" sudo -u "$CONSOLE_USER" \
-        open "/Library/Printers/PrintPDF/Utilities/PrintPDF Utility.app" || true
+    USER_HOME="$(dscl . -read "/Users/$CONSOLE_USER" NFSHomeDirectory 2>/dev/null | awk '{print $2}')"
+    [ -n "$USER_HOME" ] || USER_HOME="/Users/$CONSOLE_USER"
+
+    AGENT_DIR="$USER_HOME/Library/LaunchAgents"
+    AGENT_PATH="$AGENT_DIR/com.printpdf.mover.plist"
+    SPOOL_DIR="/private/var/spool/printpdf/$CONSOLE_USER"
+
+    mkdir -p "$AGENT_DIR" "$SPOOL_DIR"
+    chown "$CONSOLE_USER":staff "$AGENT_DIR" "$SPOOL_DIR"
+
+    cat > "$AGENT_PATH" <<EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.printpdf.mover</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/Library/Printers/PrintPDF/pdfwriter-mover.sh</string>
+    </array>
+    <key>RunAtLoad</key>
+    <true/>
+    <key>WatchPaths</key>
+    <array>
+        <string>$SPOOL_DIR</string>
+    </array>
+    <key>StartInterval</key>
+    <integer>5</integer>
+    <key>ProcessType</key>
+    <string>Background</string>
+</dict>
+</plist>
+EOF
+
+    chown "$CONSOLE_USER":staff "$AGENT_PATH"
+    chmod 644 "$AGENT_PATH"
+
+    launchctl bootout "gui/$CONSOLE_UID" "$AGENT_PATH" >/dev/null 2>&1 || true
+    launchctl bootstrap "gui/$CONSOLE_UID" "$AGENT_PATH" >/dev/null 2>&1 || true
+
+    if [ "$COMMAND_LINE_INSTALL" != "1" ]; then
+        launchctl asuser "$CONSOLE_UID" sudo -u "$CONSOLE_USER" \
+            open "/Library/Printers/PrintPDF/Utilities/PrintPDF Utility.app" || true
+    fi
 fi
