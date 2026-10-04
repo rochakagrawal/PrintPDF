@@ -1,21 +1,19 @@
-# PrintPDF 1.0
+# PrintPDF 1.2
 
-Initial PrintPDF release, based on RWTS PDFwriter 3.1d.
+Reliability and failure monitoring release.
 
 ## Highlights
 
-- Appears as a normal macOS printer named PrintPDF.
-- Saves PDFs to a folder chosen by each user.
-- Supports local and cloud-synced destination folders.
-- Moves completed PDFs into the selected folder as real files instead of using
-  RWTS PDFwriter's destination-folder symbolic link.
-- Lets users change the destination later through PrintPDF Utility.
-- Preserves existing files by adding numeric filename suffixes.
-- Contains universal Intel and Apple Silicon binaries.
-- Requires macOS 12 or newer.
+- Automatically installs and loads the per-user PrintPDF mover LaunchAgent.
+- Watches the PrintPDF spool directory for new PDFs and also checks every 5 seconds as a fallback.
+- Restores automatic delivery after login and restart through RunAtLoad.
+- Writes delivery activity and failures to `~/Library/Logs/PrintPDF.log`.
+- Shows a macOS notification when a PDF is created but the destination is missing, invalid, unavailable, or the move fails.
+- Detects PDFs left behind in the spool and reports them as stuck.
+- Adds a CUPS health monitor that detects disabled or stopped PrintPDF queues, backend errors, and jobs that remain queued without producing a PDF.
+- Keeps the existing per-user destination and duplicate-safe filename behavior.
+- Signed and notarized release workflow produces the installer and SHA-256 checksum.
 
-## Distribution note
+## Previous release
 
-The locally produced `PrintPDF.pkg` is unsigned. It should be signed and
-notarized with the publisher's Apple Developer ID before a general public
-release.
+PrintPDF 1.1 was the first Developer ID signed and Apple notarized release.
