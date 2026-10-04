@@ -26,6 +26,7 @@ if [ -n "$CONSOLE_USER" ] && [ "$CONSOLE_USER" != "root" ] && [ "$CONSOLE_USER" 
 
     AGENT_DIR="$USER_HOME/Library/LaunchAgents"
     AGENT_PATH="$AGENT_DIR/com.printpdf.mover.plist"
+    HEALTH_AGENT_PATH="$AGENT_DIR/com.printpdf.health.plist"
     SPOOL_DIR="/private/var/spool/printpdf/$CONSOLE_USER"
 
     mkdir -p "$AGENT_DIR" "$SPOOL_DIR"
@@ -56,11 +57,34 @@ if [ -n "$CONSOLE_USER" ] && [ "$CONSOLE_USER" != "root" ] && [ "$CONSOLE_USER" 
 </plist>
 EOF
 
-    chown "$CONSOLE_USER":staff "$AGENT_PATH"
-    chmod 644 "$AGENT_PATH"
+    cat > "$HEALTH_AGENT_PATH" <<EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.printpdf.health</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/Library/Printers/PrintPDF/printpdf-health-monitor.sh</string>
+    </array>
+    <key>RunAtLoad</key>
+    <true/>
+    <key>StartInterval</key>
+    <integer>30</integer>
+    <key>ProcessType</key>
+    <string>Background</string>
+</dict>
+</plist>
+EOF
+
+    chown "$CONSOLE_USER":staff "$AGENT_PATH" "$HEALTH_AGENT_PATH"
+    chmod 644 "$AGENT_PATH" "$HEALTH_AGENT_PATH"
 
     launchctl bootout "gui/$CONSOLE_UID" "$AGENT_PATH" >/dev/null 2>&1 || true
     launchctl bootstrap "gui/$CONSOLE_UID" "$AGENT_PATH" >/dev/null 2>&1 || true
+    launchctl bootout "gui/$CONSOLE_UID" "$HEALTH_AGENT_PATH" >/dev/null 2>&1 || true
+    launchctl bootstrap "gui/$CONSOLE_UID" "$HEALTH_AGENT_PATH" >/dev/null 2>&1 || true
 
     if [ "$COMMAND_LINE_INSTALL" != "1" ]; then
         launchctl asuser "$CONSOLE_UID" sudo -u "$CONSOLE_USER" \
