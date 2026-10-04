@@ -41,8 +41,13 @@ if printf '%s' "$QUEUE_STATUS" | /usr/bin/grep -qi 'disabled'; then
     exit 1
 fi
 
-if [ ! -x /usr/libexec/cups/backend/printpdf ]; then
-    notify_once "backend-missing" "PrintPDF backend is missing or cannot run."
+# The CUPS backend is intentionally root-owned and may not be executable by
+# the logged-in user. Check that the symlink resolves to an existing backend
+# instead of using a user-context executable permission test.
+BACKEND="/usr/libexec/cups/backend/printpdf"
+BACKEND_TARGET="$(/usr/bin/readlink "$BACKEND" 2>/dev/null || true)"
+if [ ! -L "$BACKEND" ] || [ -z "$BACKEND_TARGET" ] || [ ! -f "$BACKEND_TARGET" ]; then
+    notify_once "backend-missing" "PrintPDF backend is missing."
     exit 1
 fi
 
