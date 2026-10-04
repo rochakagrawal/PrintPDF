@@ -5,7 +5,7 @@ setup, each user chooses their own destination folder. The destination can be a
 local folder, an iCloud Drive folder, or a folder managed by a sync provider
 such as Google Drive or Dropbox.
 
-> **PrintPDF 1.1 is signed with Apple Developer ID and notarized by Apple for direct macOS distribution.**
+> **PrintPDF 1.2 is signed with Apple Developer ID and notarized by Apple for direct macOS distribution.**
 
 **Its main advantage over RWTS PDFwriter is that each completed PDF is moved as
 a real file directly into the folder selected by the user. RWTS PDFwriter's
@@ -28,7 +28,7 @@ change information.
 
 ## Installation
 
-PrintPDF 1.1 is distributed as a Developer ID signed and Apple notarized
+PrintPDF 1.2 is distributed as a Developer ID signed and Apple notarized
 installer package. Download it only from the official GitHub release.
 
 1. Download `PrintPDF.pkg` from the latest GitHub release.
@@ -43,7 +43,7 @@ macOS installation should not require the previous unsigned-package
 
 ## Downloads
 
-- [PrintPDF 1.1 signed and notarized installer](https://github.com/rochakagrawal/PrintPDF/releases/tag/v1.1)
+- [PrintPDF 1.2 signed and notarized installer](https://github.com/rochakagrawal/PrintPDF/releases/tag/1.2)
 - [All releases](https://github.com/rochakagrawal/PrintPDF/releases)
 
 The earlier `v1.0` release is retained as the historical unsigned release.
@@ -55,6 +55,13 @@ Print jobs are first written to a private per-user CUPS spool folder. A small
 per-user LaunchAgent then moves completed PDFs into the selected destination.
 Existing files are never overwritten; PrintPDF adds a numeric suffix when a
 filename already exists.
+
+PrintPDF 1.2 also monitors delivery health. The mover watches the spool folder
+and has a five second fallback check, logs activity to `~/Library/Logs/PrintPDF.log`,
+and shows a macOS notification when a generated PDF cannot be delivered. A
+separate CUPS health check runs every 30 seconds and warns if the PrintPDF queue
+is missing or disabled, the backend is unavailable, or a CUPS job remains stuck
+for more than 60 seconds.
 
 ## Privacy
 
