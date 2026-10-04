@@ -54,12 +54,12 @@ mv "$BUILDTEMP/$PDFWRITER" "$PDFWRITERDIR/"
 mv "$BUILDTEMP/$UTILITYAPP" "$UTILITIESDIR/"
 cp "$UTILITIESDIR/$UTILITYAPP/Contents/Resources/AppIcon.icns" "$PDFWRITERDIR/PrintPDF.icns"
 cp "$SCRIPT_DIR/uninstall" "$SCRIPT_DIR/PDFfolder.png" \
-    "$SCRIPT_DIR/pdfwriter-mover.sh" "$PDFWRITERDIR/"
+    "$SCRIPT_DIR/pdfwriter-mover.sh" "$SCRIPT_DIR/printpdf-health-monitor.sh" "$PDFWRITERDIR/"
 ppdc -d "$PPDDIR" -z "$SCRIPT_DIR/PDFWriter.drv"
 
 chmod 700 "$PDFWRITERDIR/$PDFWRITER"
 chmod 755 "$PDFWRITERDIR/uninstall" "$PDFWRITERDIR/pdfwriter-mover.sh" \
-    "$SCRIPT_DIR/postinstall" "$SCRIPT_DIR/preinstall"
+    "$PDFWRITERDIR/printpdf-health-monitor.sh" "$SCRIPT_DIR/postinstall" "$SCRIPT_DIR/preinstall"
 
 if [ "$SIGN_RELEASE" = "1" ]; then
     echo "#### signing executable components"
@@ -89,7 +89,7 @@ pkgbuild --root "$PACKAGE_TEMP/pkgroot" \
     --identifier com.printpdf.pkg \
     --ownership recommended \
     --scripts "$PACKAGE_TEMP/scripts" \
-    --version 1.1 \
+    --version 1.2 \
     "$PACKAGE_TEMP/printpdf-component.pkg" >/dev/null
 
 productbuild --synthesize \
