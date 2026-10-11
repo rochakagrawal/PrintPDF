@@ -60,6 +60,7 @@ struct ContentView: View {
         }
         .onAppear {
             NSApp.activate(ignoringOtherApps: true)
+            DestinationConfiguration.ensureMoverAgent()
             guard DestinationConfiguration.savedPath == nil, !offeredInitialSetup else { return }
             offeredInitialSetup = true
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
@@ -115,6 +116,10 @@ private enum DestinationConfiguration {
             .appendingPathComponent("Library/LaunchAgents/\(label).plist")
     }
 
+    static var spoolDirectoryPath: String {
+        "/private/var/spool/printpdf/\(NSUserName())"
+    }
+
     static var savedPath: String? {
         guard let value = try? String(contentsOf: configurationFile, encoding: .utf8)
             .trimmingCharacters(in: .whitespacesAndNewlines),
@@ -149,6 +154,10 @@ private enum DestinationConfiguration {
             </array>
             <key>RunAtLoad</key>
             <true/>
+            <key>WatchPaths</key>
+            <array>
+                <string>\(spoolDirectoryPath)</string>
+            </array>
             <key>StartInterval</key>
             <integer>5</integer>
             <key>ProcessType</key>
@@ -159,9 +168,59 @@ private enum DestinationConfiguration {
 
         try plist.write(to: launchAgentFile, atomically: true, encoding: .utf8)
 
+        // Loading the agent is what makes delivery work at all. Verify that
+        // launchd really registered it instead of trusting the exit status of
+        // the bootstrap call, because a mover that is not registered can never
+        // deliver a PDF or report its own failure.
         let domain = "gui/\(getuid())"
-        try? runLaunchctl(["bootout", domain, launchAgentFile.path], requireSuccess: false)
-        try runLaunchctl(["bootstrap", domain, launchAgentFile.path], requireSuccess: true)
+        var lastStatus: Int32 = -1
+
+        for attempt in 0..<2 {
+            if attempt > 0 {
+                // launchd can refuse the first attempt while the login session
+                // is still starting up, so retry once before giving up.
+                Thread.sleep(forTimeInterval: 1)
+            }
+            _ = launchctl(["bootout", domain, launchAgentFile.path])
+            lastStatus = launchctl(["bootstrap", domain, launchAgentFile.path])
+            if moverAgentIsLoaded(domain: domain) {
+                return
+            }
+        }
+
+        throw NSError(
+            domain: "PrintPDF",
+            code: Int(lastStatus),
+            userInfo: [NSLocalizedDescriptionKey:
+                "The background mover could not be started (launchctl status \(lastStatus)), so PDFs will not be delivered. Try choosing the folder again, or reinstall PrintPDF."]
+        )
+    }
+
+    static func moverAgentIsLoaded(domain: String) -> Bool {
+        launchctl(["print", "\(domain)/\(label)"]) == 0
+    }
+
+    /// Repairs a mover agent that is not running. The Utility calls this while
+    /// opening, so a mover that was unloaded is restored on the spot.
+    static func ensureMoverAgent() {
+        guard savedPath != nil,
+              FileManager.default.fileExists(atPath: moverPath) else { return }
+
+        let domain = "gui/\(getuid())"
+        if moverAgentIsLoaded(domain: domain) {
+            runMoverNow()
+            return
+        }
+
+        if FileManager.default.fileExists(atPath: launchAgentFile.path) {
+            _ = launchctl(["bootstrap", domain, launchAgentFile.path])
+        } else {
+            try? installMoverAgent()
+        }
+
+        if moverAgentIsLoaded(domain: domain) {
+            runMoverNow()
+        }
     }
 
     static func runMoverNow() {
@@ -170,18 +229,17 @@ private enum DestinationConfiguration {
         try? process.run()
     }
 
-    private static func runLaunchctl(_ arguments: [String], requireSuccess: Bool) throws {
+    @discardableResult
+    private static func launchctl(_ arguments: [String]) -> Int32 {
         let process = Process()
         process.executableURL = URL(fileURLWithPath: "/bin/launchctl")
         process.arguments = arguments
-        try process.run()
-        process.waitUntilExit()
-        if requireSuccess && process.terminationStatus != 0 {
-            throw NSError(
-                domain: "PrintPDF",
-                code: Int(process.terminationStatus),
-                userInfo: [NSLocalizedDescriptionKey: "The background mover could not be started."]
-            )
+        do {
+            try process.run()
+            process.waitUntilExit()
+            return process.terminationStatus
+        } catch {
+            return -1
         }
     }
 }

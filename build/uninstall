@@ -18,8 +18,11 @@ echo "
 
 uid=$(id -u)
 agent="$HOME/Library/LaunchAgents/com.printpdf.mover.plist"
+health_agent="$HOME/Library/LaunchAgents/com.printpdf.health.plist"
 launchctl bootout "gui/$uid" "$agent" >/dev/null 2>&1 || true
+launchctl bootout "gui/$uid" "$health_agent" >/dev/null 2>&1 || true
 rm -f "$agent"
+rm -f "$health_agent"
 rm -rf "$HOME/Library/Application Support/PrintPDF"
 
 sudo rm -rf /Library/Printers/PrintPDF

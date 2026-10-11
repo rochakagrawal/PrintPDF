@@ -56,12 +56,18 @@ per-user LaunchAgent then moves completed PDFs into the selected destination.
 Existing files are never overwritten; PrintPDF adds a numeric suffix when a
 filename already exists.
 
-PrintPDF 1.2 also monitors delivery health. The mover watches the spool folder
+PrintPDF 1.2.1 also monitors delivery health. The mover watches the spool folder
 and has a five second fallback check, logs activity to `~/Library/Logs/PrintPDF.log`,
-and shows a macOS notification when a generated PDF cannot be delivered. A
-separate CUPS health check runs every 30 seconds and warns if the PrintPDF queue
-is missing or disabled, the backend is unavailable, or a CUPS job remains stuck
-for more than 60 seconds.
+and shows a macOS notification when a generated PDF cannot be delivered.
+
+A separate health agent runs every 30 seconds and warns if the PrintPDF queue is
+missing or disabled, the backend is unavailable, a CUPS job remains stuck for
+more than 60 seconds, the destination folder cannot be used, the mover agent is
+not running, or finished PDFs have been waiting in the spool folder for more
+than two minutes. Because a mover that is not running cannot report its own
+failure, the health agent also reloads the mover when it finds it missing. Each
+problem is reported once, and is remembered and cleared independently so that
+one problem never hides another.
 
 ## Privacy
 
