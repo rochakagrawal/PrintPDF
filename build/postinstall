@@ -81,10 +81,44 @@ EOF
     chown "$CONSOLE_USER":staff "$AGENT_PATH" "$HEALTH_AGENT_PATH"
     chmod 644 "$AGENT_PATH" "$HEALTH_AGENT_PATH"
 
-    launchctl bootout "gui/$CONSOLE_UID" "$AGENT_PATH" >/dev/null 2>&1 || true
-    launchctl bootstrap "gui/$CONSOLE_UID" "$AGENT_PATH" >/dev/null 2>&1 || true
-    launchctl bootout "gui/$CONSOLE_UID" "$HEALTH_AGENT_PATH" >/dev/null 2>&1 || true
-    launchctl bootstrap "gui/$CONSOLE_UID" "$HEALTH_AGENT_PATH" >/dev/null 2>&1 || true
+    # Loading the mover agent is what makes delivery work at all. Report a
+    # failure instead of hiding it, because a mover that is not loaded cannot
+    # deliver PDFs and cannot raise its own alert.
+    load_agent() {
+        local label="$1"
+        local path="$2"
+        local domain="gui/$CONSOLE_UID"
+        local attempt
+
+        launchctl bootout "$domain" "$path" >/dev/null 2>&1 || true
+
+        for attempt in 1 2 3; do
+            launchctl bootstrap "$domain" "$path" >/dev/null 2>&1 && break
+            # launchd can refuse the first attempt while the login session is
+            # still starting up, so retry a few times before giving up.
+            sleep 2
+        done
+
+        launchctl print "$domain/$label" >/dev/null 2>&1
+    }
+
+    FAILED_HELPERS=""
+    load_agent "com.printpdf.mover" "$AGENT_PATH" || FAILED_HELPERS="com.printpdf.mover"
+    load_agent "com.printpdf.health" "$HEALTH_AGENT_PATH" \
+        || FAILED_HELPERS="${FAILED_HELPERS:+$FAILED_HELPERS, }com.printpdf.health"
+
+    if [ -n "$FAILED_HELPERS" ]; then
+        echo "PrintPDF: could not start background helper(s): $FAILED_HELPERS" >&2
+        echo "PrintPDF: PDFs are not delivered until com.printpdf.mover is running." >&2
+        printf '%s\n' \
+            "PrintPDF could not start the following background helper(s): $FAILED_HELPERS" \
+            "Printed PDFs stay in the spool folder until com.printpdf.mover runs." \
+            "Open PrintPDF Utility and choose the destination folder again, or reinstall PrintPDF." \
+            > "$USER_HOME/Library/Application Support/PrintPDF/install-warning.txt" 2>/dev/null || true
+        launchctl asuser "$CONSOLE_UID" sudo -u "$CONSOLE_USER" /usr/bin/osascript \
+            -e 'display notification "The background helper that delivers PDFs could not be started. Open PrintPDF Utility and choose your folder again, or reinstall PrintPDF." with title "PrintPDF problem"' \
+            >/dev/null 2>&1 || true
+    fi
 
     if [ "$COMMAND_LINE_INSTALL" != "1" ]; then
         launchctl asuser "$CONSOLE_UID" sudo -u "$CONSOLE_USER" \

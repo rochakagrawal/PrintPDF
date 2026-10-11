@@ -13,6 +13,11 @@ on:
         description: 'Type NOTARIZE to build, sign and submit PrintPDF to Apple'
         required: true
         type: string
+      version:
+        description: 'Release tag to publish when the run is on main'
+        required: false
+        default: '1.2.1'
+        type: string
 
 permissions:
   contents: write
@@ -76,13 +81,14 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
-      - name: Publish PrintPDF 1.2 release
+      - name: Publish PrintPDF release
         if: github.ref == 'refs/heads/main'
         env:
           GH_TOKEN: ${{ github.token }}
+          RELEASE_VERSION: ${{ inputs.version || '1.2.1' }}
         run: |
-          gh release view 1.2 >/dev/null 2>&1 && gh release delete 1.2 --yes || true
-          gh release create 1.2 PrintPDF.pkg PrintPDF-SHA256.txt \
-            --title "PrintPDF 1.2" \
+          gh release view "$RELEASE_VERSION" >/dev/null 2>&1 && gh release delete "$RELEASE_VERSION" --yes || true
+          gh release create "$RELEASE_VERSION" PrintPDF.pkg PrintPDF-SHA256.txt \
+            --title "PrintPDF $RELEASE_VERSION" \
             --notes-file RELEASE_NOTES.md \
             --target "$GITHUB_SHA"
