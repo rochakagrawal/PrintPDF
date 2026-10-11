@@ -5,7 +5,7 @@ setup, each user chooses their own destination folder. The destination can be a
 local folder, an iCloud Drive folder, or a folder managed by a sync provider
 such as Google Drive or Dropbox.
 
-> **PrintPDF 1.2 is signed with Apple Developer ID and notarized by Apple for direct macOS distribution.**
+> **PrintPDF 1.2.1 is signed with Apple Developer ID and notarized by Apple for direct macOS distribution.**
 
 **Its main advantage over RWTS PDFwriter is that each completed PDF is moved as
 a real file directly into the folder selected by the user. RWTS PDFwriter's
@@ -28,7 +28,7 @@ change information.
 
 ## Installation
 
-PrintPDF 1.2 is distributed as a Developer ID signed and Apple notarized
+PrintPDF 1.2.1 is distributed as a Developer ID signed and Apple notarized
 installer package. Download it only from the official GitHub release.
 
 1. Download `PrintPDF.pkg` from the latest GitHub release.
@@ -43,10 +43,11 @@ macOS installation should not require the previous unsigned-package
 
 ## Downloads
 
-- [PrintPDF 1.2 signed and notarized installer](https://github.com/rochakagrawal/PrintPDF/releases/tag/1.2)
+- [PrintPDF 1.2.1 signed and notarized installer](https://github.com/rochakagrawal/PrintPDF/releases/tag/1.2.1)
 - [All releases](https://github.com/rochakagrawal/PrintPDF/releases)
 
-The earlier `v1.0` release is retained as the historical unsigned release.
+The earlier `1.2`, `1.1` and `v1.0` releases are retained. `v1.0` is the
+historical unsigned release.
 
 The destination can be changed later by opening **PrintPDF Utility** from the
 printer's Utility panel in **System Settings → Printers & Scanners**.
