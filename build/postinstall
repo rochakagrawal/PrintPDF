@@ -50,7 +50,7 @@ if [ -n "$CONSOLE_USER" ] && [ "$CONSOLE_USER" != "root" ] && [ "$CONSOLE_USER" 
         <string>$SPOOL_DIR</string>
     </array>
     <key>StartInterval</key>
-    <integer>5</integer>
+    <integer>60</integer>
     <key>ProcessType</key>
     <string>Background</string>
 </dict>

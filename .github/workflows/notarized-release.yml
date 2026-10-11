@@ -16,7 +16,7 @@ on:
       version:
         description: 'Release tag to publish when the run is on main'
         required: false
-        default: '1.2.1'
+        default: '1.2.2'
         type: string
 
 permissions:
@@ -85,7 +85,7 @@ jobs:
         if: github.ref == 'refs/heads/main'
         env:
           GH_TOKEN: ${{ github.token }}
-          RELEASE_VERSION: ${{ inputs.version || '1.2.1' }}
+          RELEASE_VERSION: ${{ inputs.version || '1.2.2' }}
         run: |
           gh release view "$RELEASE_VERSION" >/dev/null 2>&1 && gh release delete "$RELEASE_VERSION" --yes || true
           gh release create "$RELEASE_VERSION" PrintPDF.pkg PrintPDF-SHA256.txt \

@@ -7,7 +7,8 @@
 #
 #   1. the PrintPDF CUPS queue is missing or disabled
 #   2. the CUPS backend symlink is missing
-#   3. a CUPS job has been sitting in the queue for more than 60 seconds
+#   3. a print job has been sitting in the queue for more than 60 seconds
+#      without producing a PDF
 #   4. the destination folder is not configured or not usable
 #   5. the per-user mover agent is not running (the agent that delivers PDFs).
 #      It is reloaded automatically, because a mover that is not running can
@@ -24,9 +25,11 @@ STATE_DIR="$HOME/Library/Application Support/PrintPDF"
 STATE_FILE="$STATE_DIR/health-last-alert.txt"
 ATTEMPT_FILE="$STATE_DIR/health-mover-attempt.txt"
 DESTINATION_FILE="$STATE_DIR/destination.txt"
+JOBS_FILE="$STATE_DIR/health-pending-jobs.txt"
 
 QUEUE="PrintPDF"
 BACKEND="/usr/libexec/cups/backend/printpdf"
+LPSTAT="${PRINTPDF_LPSTAT:-/usr/bin/lpstat}"
 
 MOVER_LABEL="com.printpdf.mover"
 MOVER_AGENT="$HOME/Library/LaunchAgents/$MOVER_LABEL.plist"
@@ -84,14 +87,16 @@ notify_once() {
     /usr/bin/osascript -e "display notification \"$message\" with title \"PrintPDF problem\"" >/dev/null 2>&1 || true
 }
 
-# 1. The queue must exist and be enabled.
-if ! /usr/bin/lpstat -p "$QUEUE" >/dev/null 2>&1; then
+# 1. The queue must exist and be enabled. A single lpstat call answers both
+#    questions, which keeps one process cold start per run out of the way.
+QUEUE_STATUS=""
+if ! QUEUE_STATUS="$("$LPSTAT" -p "$QUEUE" 2>&1)"; then
     notify_once "queue-missing" "PrintPDF printer queue is missing."
     exit 1
 fi
 forget_alert "queue-missing"
 
-if /usr/bin/lpstat -p "$QUEUE" 2>&1 | /usr/bin/grep -qi 'disabled'; then
+if printf '%s' "$QUEUE_STATUS" | /usr/bin/grep -qi 'disabled'; then
     notify_once "queue-disabled" "PrintPDF printer queue is disabled."
     exit 1
 fi
@@ -107,21 +112,38 @@ if [ ! -L "$BACKEND" ] || [ -z "$BACKEND_TARGET" ] || [ ! -f "$BACKEND_TARGET" ]
 fi
 forget_alert "backend-missing"
 
-# 3. A job still queued after a minute never produced a PDF. CUPS timestamps are
-#    locale-dependent, so use the spool control files as the reliable signal.
-CUPS_STUCK=0
-for control in /private/var/spool/cups/c*; do
-    [ -e "$control" ] || continue
-    if /usr/bin/strings "$control" 2>/dev/null | /usr/bin/grep -q "$QUEUE"; then
-        MTIME="$(/usr/bin/stat -f %m "$control" 2>/dev/null || echo "$NOW")"
-        if [ $((NOW - MTIME)) -ge "$CUPS_STUCK_SECONDS" ]; then
-            CUPS_STUCK=1
-            break
-        fi
+# 3. A print job that stays queued never produced a PDF, so the user is left
+#    with a print that silently did nothing. The CUPS control files are not
+#    readable by a normal user and lpstat timestamps are locale dependent, so
+#    each queued job is remembered with the time it was first seen and aged
+#    from that.
+QUEUED_JOB_IDS="$("$LPSTAT" -o "$QUEUE" 2>/dev/null | /usr/bin/awk 'NF {print $1}' || true)"
+OLDEST_QUEUED_AGE=0
+OLDEST_QUEUED_JOB=""
+: > "$JOBS_FILE.tmp"
+
+for job_id in $QUEUED_JOB_IDS; do
+    FIRST_SEEN=""
+    if [ -r "$JOBS_FILE" ]; then
+        FIRST_SEEN="$(/usr/bin/awk -v id="$job_id" '$1 == id {print $2; exit}' "$JOBS_FILE" 2>/dev/null || true)"
+    fi
+    case "$FIRST_SEEN" in
+        ''|*[!0-9]*) FIRST_SEEN="$NOW" ;;
+    esac
+
+    printf '%s %s\n' "$job_id" "$FIRST_SEEN" >> "$JOBS_FILE.tmp"
+
+    QUEUED_AGE=$((NOW - FIRST_SEEN))
+    if [ "$QUEUED_AGE" -gt "$OLDEST_QUEUED_AGE" ]; then
+        OLDEST_QUEUED_AGE="$QUEUED_AGE"
+        OLDEST_QUEUED_JOB="$job_id"
     fi
 done
-if [ "$CUPS_STUCK" = 1 ]; then
-    notify_once "cups-stuck" "A PrintPDF job has been stuck in CUPS for more than $CUPS_STUCK_SECONDS seconds."
+
+/bin/mv "$JOBS_FILE.tmp" "$JOBS_FILE"
+
+if [ "$OLDEST_QUEUED_AGE" -ge "$CUPS_STUCK_SECONDS" ]; then
+    notify_once "cups-stuck" "Print job $OLDEST_QUEUED_JOB has been waiting in the print queue for $OLDEST_QUEUED_AGE seconds without producing a PDF."
 else
     forget_alert "cups-stuck"
 fi

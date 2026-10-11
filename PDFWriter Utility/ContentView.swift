@@ -159,7 +159,7 @@ private enum DestinationConfiguration {
                 <string>\(spoolDirectoryPath)</string>
             </array>
             <key>StartInterval</key>
-            <integer>5</integer>
+            <integer>60</integer>
             <key>ProcessType</key>
             <string>Background</string>
         </dict>

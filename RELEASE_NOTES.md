@@ -1,3 +1,29 @@
+# PrintPDF 1.2.2
+
+Resource tuning, and a queue check that now actually works.
+
+## Changes
+
+- The mover agent polls the spool folder once a minute instead of every five
+  seconds. Delivery is still immediate, because the agent also registers a
+  filesystem watch on the spool folder and runs as soon as a new PDF appears.
+  This removes about 16,000 process launches per day.
+- The health agent now makes a single `lpstat` call per run instead of two.
+- The stuck print job check was rewritten. The previous version read the CUPS
+  control files in `/private/var/spool/cups`, which a normal user cannot read,
+  so it could never detect anything. Queued jobs are now tracked by job number
+  with the time each one was first seen, and a job that stays queued for more
+  than 60 seconds without producing a PDF is reported. That catches a print
+  which silently produced nothing, which the spool checks cannot see because no
+  PDF is ever created.
+
+## Previous release
+
+PrintPDF 1.2.1 fixed a silent delivery failure: a mover LaunchAgent that was not
+registered with launchd could not deliver PDFs and could not report its own
+failure. The health agent now watches for that, reloads the mover, and reports
+PDFs that are stuck in the spool folder.
+
 # PrintPDF 1.2.1
 
 Silent delivery failure fix.
