@@ -392,7 +392,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 12.0;
-				MARKETING_VERSION = 1.2.1;
+				MARKETING_VERSION = 1.2.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.printpdf.utility;
 				PRODUCT_NAME = "PrintPDF Utility";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -428,7 +428,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 12.0;
-				MARKETING_VERSION = 1.2.1;
+				MARKETING_VERSION = 1.2.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.printpdf.utility;
 				PRODUCT_NAME = "PrintPDF Utility";
 				PROVISIONING_PROFILE_SPECIFIER = "";
